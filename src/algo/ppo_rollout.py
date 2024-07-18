@@ -1,11 +1,10 @@
-import gym
+import gymnasium as gym
 import numpy as np
 import time
 import torch as th
 import wandb
 
-from gym_minigrid.minigrid import Key, Door, Goal
-
+from minigrid.core.world_object import Door, Key, Wall, Ball, Box, Goal
 from matplotlib import pyplot as plt
 
 from src.algo.buffers.ppo_buffer import PPORolloutBuffer
@@ -54,7 +53,7 @@ class PPORollout(BaseAlgorithm):
         max_grad_norm: float,
         use_sde: bool,
         sde_sample_freq: int,
-        policy_base: Type[BasePolicy] = ActorCriticPolicy,
+        # policy_base: Type[BasePolicy] = ActorCriticPolicy,
         policy_kwargs: Optional[Dict[str, Any]] = None,
         verbose: int = 0,
         seed: Optional[int] = None,
@@ -72,7 +71,6 @@ class PPORollout(BaseAlgorithm):
         super(PPORollout, self).__init__(
             policy=policy,
             env=env,
-            policy_base=policy_base,
             learning_rate=learning_rate,
             policy_kwargs=policy_kwargs,
             verbose=verbose,
@@ -168,10 +166,10 @@ class PPORollout(BaseAlgorithm):
             seeds = np.random.rand(self.n_envs)
             seeds = [int(s * 0x7fffffff) for s in seeds]
             np.random.seed(self.run_id)
-            self.env.set_seeds(seeds)
+            # self.env.set_seeds(seeds)
             self.env.waiting = True
             for i in range(self.n_envs):
-                self.env.send_reset(env_id=i)
+                self.env.send_reset(env_id=i, seed=seeds[i])
             for i in range(self.n_envs):
                 self._last_obs[i] = self.env.recv_obs(env_id=i)
             self.env.waiting = False
@@ -658,6 +656,7 @@ class PPORollout(BaseAlgorithm):
 
             # Transition
             new_obs, rewards, dones, infos = env.step(clipped_actions)
+
             if isinstance(new_obs, Dict):
                 new_obs = new_obs["rgb"]
             if self.env_render:
@@ -676,6 +675,8 @@ class PPORollout(BaseAlgorithm):
             self.log_after_transition(rewards, intrinsic_rewards)
 
             # Clear episodic memories when an episode ends
+            # TODO: Baohe: Check if this is correct. We use dones which is a combination of terminated and truncated
+            # for most the cases, but here it seems to require only termination signals.
             self.clear_on_episode_end(dones, policy_mems, model_mems)
 
             # Update global stats
@@ -730,7 +731,7 @@ class PPORollout(BaseAlgorithm):
         self.iteration = 0
 
         total_timesteps, callback = self._setup_learn(
-            total_timesteps, eval_env, callback, eval_freq, n_eval_episodes, eval_log_path, reset_num_timesteps, tb_log_name
+            total_timesteps, callback, reset_num_timesteps, tb_log_name
         )
         self.total_timesteps = total_timesteps
         callback.on_training_start(locals(), globals())

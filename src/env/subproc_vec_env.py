@@ -1,7 +1,7 @@
 import warnings
 from typing import Callable, List, Optional, Union, Sequence, Dict
 
-import gym
+import gymnasium as gym
 import numpy as np
 from numpy import ndarray
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecTransposeImage
@@ -28,8 +28,8 @@ class CustomSubprocVecEnv(SubprocVecEnv):
     def get_seeds(self) -> List[Union[None, int]]:
         return self.seeds
 
-    def send_reset(self, env_id: int) -> None:
-        self.remotes[env_id].send(("reset", None))
+    def send_reset(self, env_id: int, seed: int) -> None:
+        self.remotes[env_id].send(("reset", (seed, {})))
 
     def invisibilize_obstacles(self, obs):
         # Algorithm A5 in the Technical Appendix
@@ -55,7 +55,7 @@ class CustomSubprocVecEnv(SubprocVecEnv):
         return obs + obs_noise
 
     def recv_obs(self, env_id: int) -> ndarray:
-        obs = VecTransposeImage.transpose_image(self.remotes[env_id].recv())
+        obs = VecTransposeImage.transpose_image(self.remotes[env_id].recv()[0])
         if not self.can_see_walls:
             obs = self.invisibilize_obstacles(obs)
         if self.image_noise_scale > 0:
@@ -65,7 +65,8 @@ class CustomSubprocVecEnv(SubprocVecEnv):
     def step_wait(self) -> VecEnvStepReturn:
         results = [remote.recv() for remote in self.remotes]
         self.waiting = False
-        obs_arr, rews, dones, infos = zip(*results)
+        obs_arr, rews, dones, infos, self.reset_infos = zip(*results)
+        # obs_arr, rews, terminated, truncated, infos = zip(*results)
         obs_arr = _flatten_obs(obs_arr, self.observation_space).astype(np.float64)
         for idx in range(len(obs_arr)):
             if not self.can_see_walls:

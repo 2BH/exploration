@@ -4,10 +4,13 @@ The code was created based on the official implementation of gym-minigrid
 (version 1.0.3) and may differ from the latest version.
 """
 
-from gym_minigrid.envs import DoorKeyEnv
-from gym_minigrid.minigrid import MiniGridEnv, Grid, Goal, Door, Key, Wall, COLOR_NAMES, DIR_TO_VEC, Ball, Box
-from gym_minigrid.register import register
-from gym_minigrid.roomgrid import RoomGrid
+from minigrid.envs import DoorKeyEnv
+from minigrid.minigrid_env import MiniGridEnv
+from minigrid.core.constants import COLOR_NAMES, DIR_TO_VEC
+from minigrid.core.world_object import Door, Key, Wall, Ball, Box, Goal
+from minigrid import register
+from minigrid.core.roomgrid import RoomGrid
+from minigrid.core.grid import Grid
 
 
 class CustomDoorKeyEnv(MiniGridEnv):
@@ -1029,14 +1032,14 @@ class CustomObstructedMazeEnv(RoomGrid):
         self.mission = "pick up the %s ball" % self.ball_to_find_color
 
     def step(self, action):
-        obs, reward, done, info = super().step(action)
+        obs, reward, terminated, truncated, info = super().step(action)
 
         if action == self.actions.pickup:
             if self.carrying and self.carrying == self.obj:
                 reward = self._reward()
                 done = True
 
-        return obs, reward, done, info
+        return obs, reward, terminated, truncated, info
 
     def add_door(self, i, j, door_idx=0, color=None, locked=False, key_in_box=False, blocked=False):
         """

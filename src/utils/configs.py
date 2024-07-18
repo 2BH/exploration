@@ -4,7 +4,9 @@ import time
 import torch as th
 import wandb
 from torch import nn
-from gym_minigrid.wrappers import ImgObsWrapper, FullyObsWrapper, ReseedWrapper
+# from gym_minigrid.wrappers import ImgObsWrapper, FullyObsWrapper, ReseedWrapper
+from minigrid.wrappers import FullyObsWrapper, ImgObsWrapper, ReseedWrapper
+from src.env.ngc_wrapper import DiscreteParallelWorldWrapper
 from procgen import ProcgenEnv
 from stable_baselines3.common.callbacks import CallbackList
 from stable_baselines3.common.env_util import make_vec_env
@@ -35,9 +37,15 @@ class TrainingConfig():
     def init_env_name(self, game_name, project_name):
         env_name = game_name
         self.env_source = EnvSrc.get_enum_env_src(self.env_source)
+        self.wrapper_kwargs = {}
         if self.env_source == EnvSrc.MiniGrid and not game_name.startswith('MiniGrid-'):
             env_name = f'MiniGrid-{game_name}'
             env_name += '-v0'
+        elif self.env_source == EnvSrc.NGC:
+            env_name = 'MiniGrid-MultiRoom-N6-v0'
+            # TODO: Currently other disturbance_type except append is not supported to be easily configured
+            # self.wrapper_kwargs = {'disturbance_type': "append"}
+
         self.env_name = env_name
         self.project_name = env_name if project_name is None else project_name
 
@@ -84,20 +92,27 @@ class TrainingConfig():
                 wrapper_class = lambda x: ImgObsWrapper(x)
 
             if self.fixed_seed >= 0 and self.env_source == EnvSrc.MiniGrid:
-                assert not self.fully_obs
+                assert not self.fully_obs, "Cannot use fixed seed with FullyObsWrapper as it will be too simple"
                 _seeds = [self.fixed_seed]
                 wrapper_class = lambda x: ImgObsWrapper(ReseedWrapper(x, seeds=_seeds))
+            return wrapper_class
+        elif self.env_source == EnvSrc.NGC:
+            if self.fully_obs:
+                wrapper_class = lambda x: DiscreteParallelWorldWrapper(FullyObsWrapper(x))
+            else:
+                wrapper_class = lambda x: DiscreteParallelWorldWrapper(x)
             return wrapper_class
         return None
 
     def get_venv(self, wrapper_class=None):
-        if self.env_source == EnvSrc.MiniGrid:
+        if self.env_source == EnvSrc.MiniGrid or self.env_source == EnvSrc.NGC:
             venv = make_vec_env(
                 self.env_name,
                 wrapper_class=wrapper_class,
                 vec_env_cls=CustomSubprocVecEnv,
                 n_envs=self.num_processes,
                 monitor_dir=self.log_dir,
+                wrapper_kwargs=self.wrapper_kwargs
             )
         elif self.env_source == EnvSrc.ProcGen:
             venv = ProcgenEnv(

@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 import numpy as np
 
 from src.algo.intrinsic_rewards.deir import DiscriminatorModel
@@ -82,7 +82,7 @@ class PPOModel(ActorCriticCnnPolicy):
         self.max_grad_norm = max_grad_norm
         self.model_features_dim = model_features_dim
         self.model_latents_dim = model_latents_dim
-        self.action_num = action_space.n
+        self.action_num = action_space.n if isinstance(action_space, gym.spaces.Discrete) else action_space.nvec.sum()
         self.learning_rate = learning_rate
         self.model_learning_rate = model_learning_rate
         self.int_rew_source = int_rew_source
@@ -146,11 +146,11 @@ class PPOModel(ActorCriticCnnPolicy):
             use_sde,
             log_std_init,
             full_std,
-            sde_net_arch,
             use_expln,
             squash_output,
             self.policy_features_extractor_class,
             self.policy_features_extractor_kwargs,
+            True,
             normalize_images,
             optimizer_class,
             optimizer_kwargs,
@@ -294,7 +294,7 @@ class PPOModel(ActorCriticCnnPolicy):
             -> Tuple[Tensor, Tensor, Tensor, Tensor]:
         latent_pi, latent_vf, latent_sde, memories = self._get_latent(obs, mem)
         values = self.value_net(latent_vf)
-        distribution = self._get_action_dist_from_latent(latent_pi, latent_sde=latent_sde)
+        distribution = self._get_action_dist_from_latent(latent_pi)
         actions = distribution.get_actions(deterministic=deterministic)
         log_prob = distribution.log_prob(actions)
         return actions, values, log_prob, memories
@@ -302,7 +302,7 @@ class PPOModel(ActorCriticCnnPolicy):
     def evaluate_policy(self, obs: Tensor, act: Tensor, mem: Tensor) \
             -> Tuple[Tensor, Tensor, Tensor, Tensor]:
         latent_pi, latent_vf, latent_sde, memories = self._get_latent(obs, mem)
-        distribution = self._get_action_dist_from_latent(latent_pi, latent_sde)
+        distribution = self._get_action_dist_from_latent(latent_pi)
         log_prob = distribution.log_prob(act)
         values = self.value_net(latent_vf)
         return values, log_prob, distribution.entropy(), memories

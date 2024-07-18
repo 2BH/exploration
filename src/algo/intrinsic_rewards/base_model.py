@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 import numpy as np
 
 from torch.nn import GRUCell
@@ -42,7 +42,7 @@ class IntrinsicRewardBaseModel(nn.Module):
         self.observation_space = observation_space
         self.normalize_images = normalize_images
         self.action_space = action_space
-        self.action_num = action_space.n
+        self.action_num = action_space.n if isinstance(action_space, gym.spaces.Discrete) else action_space.nvec.sum()
         self.max_grad_norm = max_grad_norm
 
         self.model_features_dim = model_features_dim
