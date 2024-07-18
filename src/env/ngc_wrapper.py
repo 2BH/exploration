@@ -13,7 +13,7 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
     Args:
         gym (_type_): _description_
     """
-    def __init__(self, env, disturbance_type="append", share_action=False, **kwargs):
+    def __init__(self, env, disturbance_type="append", share_action=True, **kwargs):
         super().__init__(env)
         self._parallel_env = gym.make(env.unwrapped.spec.id, render_mode="rgb_array")
         assert disturbance_type in ["overwrite", "append", "random_overwrite"], (
@@ -104,7 +104,7 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
         self.env.close()
         self._parallel_env.close()
     
-    def render(self, mode="human", incl_pov=False):
+    def render(self, mode="human", incl_pov=True):
         """
         Renders the current state of the environment.
 
@@ -179,6 +179,7 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
             pygame.event.pump()
             self.clock.tick(self.metadata["render_fps"])
             pygame.display.flip()
+            return img
 
         elif mode == "rgb_array":
             return img

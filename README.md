@@ -28,6 +28,13 @@ PYTHONPATH=./ python3 src/train.py \
   --game_name=DoorKey-8x8
 ```
 
+### Train method on NGC
+
+```bash
+PYTHONPATH=./ python3 src/train.py \
+  --int_rew_source=DEIR
+```
+
 ### Train DEIR on MiniGrid with advanced settings
 ```commandline
 PYTHONPATH=./ python3 src/train.py \

@@ -132,7 +132,7 @@ def train(config):
               help='Number of neurons of a learned embedding (dynamics model)')
 @click.option('--learning_rate', default=3e-4, type=float, help='Learning rate of PPO')
 @click.option('--model_learning_rate', default=3e-4, type=float, help='Learning rate of the dynamics model')
-@click.option('--num_processes', default=2, type=int, help='Number of training processes (workers)')
+@click.option('--num_processes', default=16, type=int, help='Number of training processes (workers)')
 @click.option('--batch_size', default=512, type=int, help='Batch size')
 @click.option('--n_steps', default=512, type=int, help='Number of steps to run for each process per update')
 # Env params

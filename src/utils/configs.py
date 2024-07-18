@@ -10,7 +10,7 @@ from src.env.ngc_wrapper import DiscreteParallelWorldWrapper
 from procgen import ProcgenEnv
 from stable_baselines3.common.callbacks import CallbackList
 from stable_baselines3.common.env_util import make_vec_env
-from stable_baselines3.common.vec_env import VecMonitor
+from stable_baselines3.common.vec_env import VecMonitor, VecVideoRecorder
 from datetime import datetime
 
 from src.algo.common_models.cnns import BatchNormCnnFeaturesExtractor, LayerNormCnnFeaturesExtractor, \
@@ -20,7 +20,7 @@ from src.utils.enum_types import EnvSrc, NormType, ModelType
 from wandb.integration.sb3 import WandbCallback
 
 from src.utils.loggers import LocalLogger
-from src.utils.video_recorder import VecVideoRecorder
+# from src.utils.video_recorder import VecVideoRecorder
 
 
 class TrainingConfig():

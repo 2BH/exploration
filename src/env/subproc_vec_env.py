@@ -75,29 +75,29 @@ class CustomSubprocVecEnv(SubprocVecEnv):
                 obs_arr[idx] = self.add_noise(obs_arr[idx])
         return obs_arr, np.stack(rews), np.stack(dones), infos
 
-    def get_first_image(self) -> Sequence[np.ndarray]:
-        for pipe in self.remotes[:1]:
-            # gather images from subprocesses
-            # `mode` will be taken into account later
-            pipe.send(("render", "rgb_array"))
-        imgs = [pipe.recv() for pipe in self.remotes[:1]]
-        return imgs
+    # def get_first_image(self) -> Sequence[np.ndarray]:
+    #     for pipe in self.remotes[:1]:
+    #         # gather images from subprocesses
+    #         # `mode` will be taken into account later
+    #         pipe.send(("render", "rgb_array"))
+    #     imgs = [pipe.recv() for pipe in self.remotes[:1]]
+    #     return imgs
 
-    def render(self, mode: str = "human") -> Optional[np.ndarray]:
-        try:
-            # imgs = self.get_images()
-            imgs = self.get_first_image()
-        except NotImplementedError:
-            warnings.warn(f"Render not defined for {self}")
-            return
+    # def render(self, mode: str = "human") -> Optional[np.ndarray]:
+    #     try:
+    #         # imgs = self.get_images()
+    #         imgs = self.get_first_image()
+    #     except NotImplementedError:
+    #         warnings.warn(f"Render not defined for {self}")
+    #         return
 
-        # Create a big image by tiling images from subprocesses
-        bigimg = tile_images(imgs[:1])
-        if mode == "human":
-            import cv2  # pytype:disable=import-error
-            cv2.imshow("vecenv", bigimg[:, :, ::-1])
-            cv2.waitKey(1)
-        elif mode == "rgb_array":
-            return bigimg
-        else:
-            raise NotImplementedError(f"Render mode {mode} is not supported by VecEnvs")
+    #     # Create a big image by tiling images from subprocesses
+    #     bigimg = tile_images(imgs[:1])
+    #     if mode == "human":
+    #         import cv2  # pytype:disable=import-error
+    #         cv2.imshow("vecenv", bigimg[:, :, ::-1])
+    #         cv2.waitKey(1)
+    #     elif mode == "rgb_array":
+    #         return bigimg
+    #     else:
+    #         raise NotImplementedError(f"Render mode {mode} is not supported by VecEnvs")
