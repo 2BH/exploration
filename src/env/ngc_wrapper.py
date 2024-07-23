@@ -16,8 +16,8 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
     def __init__(self, env, disturbance_type="append", share_action=True, **kwargs):
         super().__init__(env)
         self._parallel_env = gym.make(env.unwrapped.spec.id, render_mode="rgb_array")
-        assert disturbance_type in ["overwrite", "append", "random_overwrite"], (
-            "disturbance_type must be one of ['overwrite', 'append', 'random_overwrite']"
+        assert disturbance_type in ["overwrite", "append", "random_overwrite", "black"], (
+            "disturbance_type must be one of ['overwrite', 'append', 'random_overwrite', 'black']"
         )
         self.disturbance_type = disturbance_type
         image_observation_space = self.env.observation_space["image"]
@@ -52,7 +52,10 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
                 noisy_obs, _, _, _, _ = self._parallel_env.step(6)
             else:
                 actual_obs, reward, terminated, truncated, info = self.env.step(6)
-                noisy_obs, _, _, _, _ = self._parallel_env.step(action-7)
+                if self.disturbance_type == "black":
+                    noisy_obs, _, _, _, _ = self._parallel_env.step(6)
+                else:
+                    noisy_obs, _, _, _, _ = self._parallel_env.step(action - self.env.action_space.n)
         else:
             actual_obs, reward, terminated, truncated, info = self.env.step(action[0])
             noisy_obs, _, _, _, _ = self._parallel_env.step(action[1])
@@ -98,6 +101,12 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
             obs[mask] = noisy_obs[mask]
             mask = mask.reshape(obs.shape)
             self._cur_mask = mask
+        elif self.disturbance_type == "black":
+            noisy_obs = np.zeros_like(noisy_obs)
+            noisy_obs[:,:,1] = 5 # Set all color to be grey
+            obs = np.concatenate([obs, noisy_obs], axis=0)
+            mask = np.zeros_like(obs, dtype=bool)
+            self._cur_mask = mask
         return obs
 
     def close(self):
@@ -117,6 +126,8 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
         """
         actual_img = self.env.get_frame(self.env.highlight, self.env.tile_size, self.env.agent_pov)
         noisy_img = self._parallel_env.get_frame(self._parallel_env.highlight, self._parallel_env.tile_size, self._parallel_env.agent_pov)
+        if self.disturbance_type == "black":
+            noisy_img = np.zeros_like(noisy_img) + 255
         img = np.concatenate([actual_img, noisy_img], axis=0)
         if incl_pov:
             target_width = noisy_img.shape[1]
@@ -126,6 +137,16 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
                 actual_pov_img = np.pad(actual_pov_img.transpose(1, 0, 2),
                                         ((0,0), (target_width//2-actual_pov_img.shape[0]//2, target_width//2-actual_pov_img.shape[1]//2), (0,0)),
                                         mode="constant", constant_values=255)[::-1,:, :]
+                noisy_pov_img = np.pad(noisy_pov_img.transpose(1, 0, 2),
+                                       ((0,0), (target_width//2-noisy_pov_img.shape[0]//2, target_width//2-noisy_pov_img.shape[1]//2), (0,0)),
+                                       mode="constant", constant_values=255)[::-1,:, :]
+                
+                img = np.concatenate([img, actual_pov_img, noisy_pov_img], axis=0)
+            elif self.disturbance_type == "black":
+                actual_pov_img = np.pad(actual_pov_img.transpose(1, 0, 2),
+                                        ((0,0), (target_width//2-actual_pov_img.shape[0]//2, target_width//2-actual_pov_img.shape[1]//2), (0,0)),
+                                        mode="constant", constant_values=255)[::-1,:, :]
+                noisy_pov_img = np.zeros_like(noisy_pov_img) + 255
                 noisy_pov_img = np.pad(noisy_pov_img.transpose(1, 0, 2),
                                        ((0,0), (target_width//2-noisy_pov_img.shape[0]//2, target_width//2-noisy_pov_img.shape[1]//2), (0,0)),
                                        mode="constant", constant_values=255)[::-1,:, :]
