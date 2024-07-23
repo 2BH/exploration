@@ -20,6 +20,7 @@ from stable_baselines3.common.utils import obs_as_tensor, safe_mean
 from stable_baselines3.common.vec_env import VecEnv
 
 from typing import Any, Dict, Optional, Tuple, Type, Union
+from gymnasium import spaces
 
 
 class PPORollout(BaseAlgorithm):
@@ -386,6 +387,9 @@ class PPORollout(BaseAlgorithm):
 
 
     def log_on_rollout_end(self, log_interval):
+        # running average of reward achieve ratio
+        self.rew_achieve_ratio = 0.9*self.rew_achieve_ratio + 0.1*self.rollout_sum_rewards / (self.rollout_done_episodes + 1e-8)
+
         if log_interval is not None and self.iteration % log_interval == 0:
             log_data = {
                 "iterations": self.iteration,
@@ -738,6 +742,12 @@ class PPORollout(BaseAlgorithm):
 
         self.on_training_start()
         print('Collecting rollouts ...')
+
+        # initial settings for reward guided exploitation
+        self.rew_achieve_ratio = 0
+        self.ent_coef_init = self.ent_coef
+        if isinstance(self.action_space, spaces.Discrete):
+            self.entropy_max = -self.action_space.n * 1.0/self.action_space.n * np.log(1.0/self.action_space.n)
 
         while self.num_timesteps < total_timesteps:
             collect_start_time = time.time()

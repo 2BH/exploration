@@ -226,6 +226,7 @@ class PPOTrainer(PPORollout):
                     if entropy is None:
                         # Approximate entropy when no analytical form
                         entropy_loss = -th.mean(-log_prob)
+                        raise ValueError("Only work with valid entropy!")
                     else:
                         entropy_loss = -th.mean(entropy)
 
@@ -233,6 +234,16 @@ class PPOTrainer(PPORollout):
                     loss = self.pg_coef * policy_loss + \
                            self.ent_coef * entropy_loss + \
                            self.vf_coef * value_loss
+
+                    # Update ent_coef according to rew_achieve_ratio
+                    entropy_min = 0.5*(1-self.rew_achieve_ratio) * self.entropy_max
+                    if -entropy_loss < entropy_min:
+                        self.ent_coef *= 1.2
+                        self.ent_coef = min(self.ent_coef, 1.0)
+                    elif -entropy_loss > entropy_min*1.1:
+                        self.ent_coef /= 1.2
+                        self.ent_coef = max(self.ent_coef, self.ent_coef_init)
+
 
                     with th.no_grad():
                         log_ratio = log_prob - rollout_data.old_log_prob
@@ -253,6 +264,7 @@ class PPOTrainer(PPORollout):
                         adv_std=advantages.std(),
                         clip_fraction=clip_fraction,
                         approx_kl_div=approx_kl_div,
+                        ent_coef = self.ent_coef,
                     )
 
                     # Optimization step
