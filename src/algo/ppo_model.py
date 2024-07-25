@@ -230,6 +230,9 @@ class PPOModel(ActorCriticCnnPolicy):
                 policy_cnn=self.features_extractor,
                 policy_rnns=self.policy_rnns,
             )
+        
+        # RGE variable
+        self.RGE_parameter = 0
 
     def _build_mlp_extractor(self) -> None:
         self.mlp_extractor = PolicyValueOutputHeads(

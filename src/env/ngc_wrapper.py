@@ -15,7 +15,7 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
     """
     def __init__(self, env, disturbance_type="append", share_action=True, **kwargs):
         super().__init__(env)
-        self._parallel_env = gym.make(env.unwrapped.spec.id, render_mode="rgb_array")
+        self._parallel_env = gym.make("BabyAI-BossLevelNoUnlock-v0", render_mode="rgb_array")
         assert disturbance_type in ["overwrite", "append", "random_overwrite", "black"], (
             "disturbance_type must be one of ['overwrite', 'append', 'random_overwrite', 'black']"
         )

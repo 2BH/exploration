@@ -53,7 +53,7 @@ class TrainingConfig():
         if self.group_name is not None:
             self.wandb_run = wandb.init(
                 name=f'run-id-{self.run_id}',
-                entity='abcde-project',  # your project name on wandb
+                entity='syan',  # your project name on wandb
                 project=self.project_name,
                 group=self.group_name,
                 settings=wandb.Settings(start_method="fork"),

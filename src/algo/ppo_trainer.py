@@ -18,6 +18,7 @@ from torch.nn import functional as F
 
 from typing import Any, Dict, Optional, Type, Union
 
+# ENTROPY_SCHEDULE = [2.59, 2.475, 2.315, 2.116, 1.881, 1.612, 1.306, 0.956, 0.547, 0.0]
 
 class PPOTrainer(PPORollout):
 
@@ -235,14 +236,9 @@ class PPOTrainer(PPORollout):
                            self.ent_coef * entropy_loss + \
                            self.vf_coef * value_loss
 
-                    # Update ent_coef according to rew_achieve_ratio
-                    entropy_min = 0.5*(1-self.rew_achieve_ratio) * self.entropy_max
-                    if -entropy_loss < entropy_min:
-                        self.ent_coef *= 1.2
-                        self.ent_coef = min(self.ent_coef, 1.0)
-                    elif -entropy_loss > entropy_min*1.1:
-                        self.ent_coef /= 1.2
-                        self.ent_coef = max(self.ent_coef, self.ent_coef_init)
+                    # Update RGE_parameter according to rew_achieve_ratio
+                    self.policy.RGE_parameter = 4+ self.rew_achieve_ratio * 5
+                    prob = th.exp(log_prob)
 
 
                     with th.no_grad():
@@ -264,7 +260,10 @@ class PPOTrainer(PPORollout):
                         adv_std=advantages.std(),
                         clip_fraction=clip_fraction,
                         approx_kl_div=approx_kl_div,
-                        ent_coef = self.ent_coef,
+                        RGE_para = self.policy.RGE_parameter,
+                        prob_min = th.min(prob),
+                        prob_max = th.max(prob),
+                        prob_var = th.var(prob),
                     )
 
                     # Optimization step
