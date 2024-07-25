@@ -236,8 +236,11 @@ class PPOTrainer(PPORollout):
                            self.ent_coef * entropy_loss + \
                            self.vf_coef * value_loss
 
-                    # Update RGE_parameter according to rew_achieve_ratio
-                    self.policy.RGE_parameter = 4+ self.rew_achieve_ratio * 5
+                    # Update RGE_parameter (logits clip) according to rew_achieve_ratio
+                    # self.policy.RGE_parameter = 4+ self.rew_achieve_ratio * 5
+                    # Update RGE_parameter (prob reg) according to rew_achieve_ratio
+                    self.policy.RGE_parameter = -0.1 * (self.rew_achieve_ratio-1.0)
+
                     prob = th.exp(log_prob)
 
 
