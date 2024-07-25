@@ -156,7 +156,7 @@ class PPORollout(BaseAlgorithm):
         if isinstance(self._last_obs, Dict):
             self._last_obs = self._last_obs["rgb"]
 
-        if self.env_source == EnvSrc.MiniGrid:
+        if self.env_source in [EnvSrc.MiniGrid, EnvSrc.NGC]:
             # Set advanced options for MiniGrid envs
             self.env.can_see_walls = self.can_see_walls
             self.env.image_noise_scale = self.image_noise_scale
