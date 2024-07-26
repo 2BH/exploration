@@ -239,7 +239,7 @@ class PPOTrainer(PPORollout):
                     # Update RGE_parameter (logits clip) according to rew_achieve_ratio
                     # self.policy.RGE_parameter = 4+ self.rew_achieve_ratio * 5
                     # Update RGE_parameter (prob reg) according to rew_achieve_ratio
-                    self.policy.RGE_parameter = -0.1 * (self.rew_achieve_ratio-1.0)
+                    self.policy.RGE_parameter = -0.03 * (self.rew_achieve_ratio-1.0)
 
                     prob = th.exp(log_prob)
 
@@ -267,6 +267,7 @@ class PPOTrainer(PPORollout):
                         prob_min = th.min(prob),
                         prob_max = th.max(prob),
                         prob_var = th.var(prob),
+                        prob_mean = th.mean(prob),
                     )
 
                     # Optimization step

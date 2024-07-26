@@ -74,6 +74,8 @@ class PPOModel(ActorCriticCnnPolicy):
         rnd_use_policy_emb: int = 0,
         dsc_obs_queue_len: int = 0,
         log_dsc_verbose: int = 0,
+        action_mask: list = [],
+        num_actions: int = 0,
     ):
         self.run_id = run_id
         self.n_envs = n_envs
@@ -113,6 +115,8 @@ class PPOModel(ActorCriticCnnPolicy):
         self.model_cnn_features_extractor_kwargs = model_cnn_features_extractor_kwargs
         self.dsc_obs_queue_len = dsc_obs_queue_len
         self.log_dsc_verbose = log_dsc_verbose
+        self.action_mask = action_mask
+        self.num_actions = num_actions
 
         if isinstance(observation_space, gym.spaces.Dict):
             observation_space = observation_space["rgb"]

@@ -67,6 +67,8 @@ def train(config):
         rnd_use_policy_emb=config.rnd_use_policy_emb,
         dsc_obs_queue_len=config.dsc_obs_queue_len,
         log_dsc_verbose=config.log_dsc_verbose,
+        action_mask = config.action_mask,
+        num_actions = config.num_actions
     )
 
     model = PPOTrainer(
@@ -147,6 +149,10 @@ def train(config):
 @click.option('--procgen_num_threads', default=4, type=int, help='Number of parallel ProcGen threads')
 @click.option('--log_explored_states', default=0, type=int, help='Whether to log the number of explored states')
 @click.option('--fixed_seed', default=-1, type=int, help='Whether to use a fixed env seed (MiniGrid)')
+@click.option('--action_mask', default=[True, True, True, False, False, True, False, True, True, True, True, False, False, False], type=list,
+              help='action mask of MiniGrid-NGC envs; default to MultiRoom-N6 + BabyAI-BossLevelNoUnlock')
+@click.option('--num_actions', default=8, type=int,
+              help='valid action amount in MiniGrid-NGC; default to MultiRoom-N6 + BabyAI-BossLevelNoUnlock')
 # Algo params
 @click.option('--n_epochs', default=4, type=int, help='Number of epochs to train policy and value nets')
 @click.option('--model_n_epochs', default=4, type=int, help='Number of epochs to train common_models')
@@ -236,7 +242,7 @@ def main(
     policy_cnn_norm, policy_mlp_norm, policy_gru_norm, model_cnn_type, model_mlp_layers, model_cnn_norm, model_mlp_norm,
     model_gru_norm, activation_fn, cnn_activation_fn, gru_layers, optimizer, optim_eps, adam_beta1, adam_beta2,
     rmsprop_alpha, rmsprop_momentum, write_local_logs, enable_plotting, plot_interval, plot_colormap, record_video,
-    rec_interval, video_length, log_dsc_verbose, env_render, use_status_predictor
+    rec_interval, video_length, log_dsc_verbose, env_render, use_status_predictor, action_mask, num_actions
 ):
     set_random_seed(run_id, using_cuda=True)
     args = locals().items()
