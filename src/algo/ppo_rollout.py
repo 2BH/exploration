@@ -550,6 +550,7 @@ class PPORollout(BaseAlgorithm):
                 last_mems=last_model_mem_tensor,
                 obs_history=self.episodic_obs_emb_history,
                 trj_history=self.episodic_trj_emb_history,
+                curr_dones=done_tensor,
                 plain_dsc=bool(self.int_rew_source == ModelType.PlainDiscriminator),
             )
             # Insert obs into the Discriminator's obs queue

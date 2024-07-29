@@ -105,6 +105,8 @@ class PPORolloutBuffer(BaseBuffer):
 
         # Rescale by IR coef
         self.intrinsic_rewards *= self.int_rew_coef
+        # reward for staying alive
+        self.intrinsic_rewards += 1e-3
 
         # Clip after normalization
         if self.int_rew_clip > 0:

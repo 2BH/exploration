@@ -236,7 +236,7 @@ class DiscriminatorModel(IntrinsicRewardBaseModel):
 
     def get_intrinsic_rewards(self,
         curr_obs: Tensor, next_obs: Tensor, last_mems: Tensor,
-        obs_history: List, trj_history: List, plain_dsc: bool = False
+        obs_history: List, trj_history: List, curr_dones: Tensor, plain_dsc: bool = False, 
     ):
         # Get observation and trajectory embeddings at t and t+1
         with th.no_grad():
@@ -277,6 +277,8 @@ class DiscriminatorModel(IntrinsicRewardBaseModel):
                 # Plain discriminator (DEIR without the MI term)
                 int_rews[env_id] += obs_dists.min().item()
 
+        # no int reward at episode termination
+        int_rews = int_rews * (1-curr_dones.cpu().numpy())
         return int_rews, model_mems
 
 
