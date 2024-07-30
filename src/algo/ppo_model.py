@@ -249,10 +249,10 @@ class PPOModel(ActorCriticCnnPolicy):
             self.policy_rnns.append(getattr(self, name))
 
     def _init_modules(self) -> None:
-        nn.init.zeros_(self.action_net.weight)
-        nn.init.zeros_(self.action_net.bias)
-        nn.init.zeros_(self.value_net.weight)
-        nn.init.zeros_(self.value_net.bias)
+        # nn.init.zeros_(self.action_net.weight)
+        # nn.init.zeros_(self.action_net.bias)
+        # nn.init.zeros_(self.value_net.weight)
+        # nn.init.zeros_(self.value_net.bias)
 
         module_names = {
             self.features_extractor: 'features_extractor',
