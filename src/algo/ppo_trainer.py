@@ -70,6 +70,7 @@ class PPOTrainer(PPORollout):
         log_explored_states: Optional[int] = None,
         local_logger: Optional[LocalLogger] = None,
         use_wandb: bool = False,
+        optim_reward: float = 1.0,
     ):
         super(PPOTrainer, self).__init__(
             policy,
@@ -150,6 +151,7 @@ class PPOTrainer(PPORollout):
         self.pg_loss_avg = None
         self.ent_loss_avg = None
         self.ent_coef_init = ent_coef
+        self.optim_reward = optim_reward
         if _init_setup_model:
             self._setup_model()
 
@@ -242,7 +244,7 @@ class PPOTrainer(PPORollout):
                     # self.policy.RGE_parameter = -0.1 * (self.rew_achieve_ratio/0.9-1.0)
                     # self.policy.RGE_parameter = 0.01 + (0.5-0.01)*self.rew_achieve_ratio/0.9
                     # self.policy.RGE_parameter = max(-7.01 * (self.rew_achieve_ratio/0.9 - 1), 1)
-                    self.policy.gage_topk = -self.policy.gage_topk_init * (self.rew_achieve_ratio - 1) + 1
+                    self.policy.gage_topk = max(0, self.policy.gage_topk_init * (1 - self.rew_achieve/self.optim_reward)) + 1
                     # self.policy.RGE_parameter = max(-0.1**0.5 * (self.rew_achieve_ratio-1), 0.1)
 
                     prob = th.exp(log_prob)
@@ -268,7 +270,7 @@ class PPOTrainer(PPORollout):
                         clip_fraction=clip_fraction,
                         approx_kl_div=approx_kl_div,
                         gage_topk = self.policy.gage_topk,
-                        goal_achieve = self.rew_achieve_ratio,
+                        goal_achieve = self.rew_achieve,
                         prob_min = th.min(prob),
                         prob_max = th.max(prob),
                         prob_var = th.var(prob),
