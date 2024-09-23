@@ -388,7 +388,7 @@ class PPORollout(BaseAlgorithm):
 
     def log_on_rollout_end(self, log_interval):
         # running average of reward achieve ratio
-        self.rew_achieve_ratio = 0.9*self.rew_achieve_ratio + 0.1*self.rollout_sum_rewards / (self.rollout_done_episodes + 1e-8)
+        self.rew_achieve = 0.95*self.rew_achieve + 0.05*self.rollout_sum_rewards / (self.rollout_done_episodes + 1e-8)
 
         if log_interval is not None and self.iteration % log_interval == 0:
             log_data = {
@@ -745,7 +745,7 @@ class PPORollout(BaseAlgorithm):
         print('Collecting rollouts ...')
 
         # initial settings for reward guided exploitation
-        self.rew_achieve_ratio = 0
+        self.rew_achieve = 0
         self.ent_coef_init = self.ent_coef
         if isinstance(self.action_space, spaces.Discrete):
             self.entropy_max = -self.action_space.n * 1.0/self.action_space.n * np.log(1.0/self.action_space.n)
