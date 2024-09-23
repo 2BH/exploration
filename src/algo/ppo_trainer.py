@@ -268,7 +268,7 @@ class PPOTrainer(PPORollout):
                         clip_fraction=clip_fraction,
                         approx_kl_div=approx_kl_div,
                         gage_topk = self.policy.gage_topk,
-                        goal_achieve = self.rew_achieve_ratio
+                        goal_achieve = self.rew_achieve_ratio,
                         prob_min = th.min(prob),
                         prob_max = th.max(prob),
                         prob_var = th.var(prob),
