@@ -15,7 +15,7 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
     """
     def __init__(self, env, disturbance_type="append", share_action=True, **kwargs):
         super().__init__(env)
-        self._parallel_env = gym.make("MiniGrid-Gaming-20x20-v0", render_mode="rgb_array")
+        self._parallel_env = gym.make("MiniGrid-Gaming-v0", render_mode="rgb_array")
         assert disturbance_type in ["overwrite", "append", "random_overwrite", "black"], (
             "disturbance_type must be one of ['overwrite', 'append', 'random_overwrite', 'black']"
         )
@@ -33,7 +33,7 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
             )
         self.share_action = share_action
         if share_action:
-            self.action_space = gym.spaces.Discrete(self.env.action_space.n + 6)
+            self.action_space = gym.spaces.Discrete(self.env.action_space.n + 5)
         else:
             raise NotImplementedError("Share action is not implemented yet")
             self.action_space = gym.spaces.MultiDiscrete(
