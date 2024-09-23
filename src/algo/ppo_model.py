@@ -74,6 +74,9 @@ class PPOModel(ActorCriticCnnPolicy):
         rnd_use_policy_emb: int = 0,
         dsc_obs_queue_len: int = 0,
         log_dsc_verbose: int = 0,
+        gage_topk_init: float = 0,
+        gage_eta1: float = 0,
+        gage_eta2: float = 0,
     ):
         self.run_id = run_id
         self.n_envs = n_envs
@@ -232,7 +235,10 @@ class PPOModel(ActorCriticCnnPolicy):
             )
         
         # RGE variable
-        self.RGE_parameter = 0
+        self.gage_topk_init = gage_topk_init #0.1**0.5
+        self.gage_topk = gage_topk_init
+        self.gage_eta1 = gage_eta1
+        self.gage_eta2 = gage_eta2
 
     def _build_mlp_extractor(self) -> None:
         self.mlp_extractor = PolicyValueOutputHeads(

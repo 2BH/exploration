@@ -239,7 +239,11 @@ class PPOTrainer(PPORollout):
                     # Update RGE_parameter (logits clip) according to rew_achieve_ratio
                     # self.policy.RGE_parameter = 4+ self.rew_achieve_ratio * 5
                     # Update RGE_parameter (prob reg) according to rew_achieve_ratio
-                    self.policy.RGE_parameter = -0.1 * (self.rew_achieve_ratio-1.0)
+                    # self.policy.RGE_parameter = -0.1 * (self.rew_achieve_ratio/0.9-1.0)
+                    # self.policy.RGE_parameter = 0.01 + (0.5-0.01)*self.rew_achieve_ratio/0.9
+                    # self.policy.RGE_parameter = max(-7.01 * (self.rew_achieve_ratio/0.9 - 1), 1)
+                    self.policy.gage_topk = -self.policy.gage_topk_init * (self.rew_achieve_ratio - 1) + 1
+                    # self.policy.RGE_parameter = max(-0.1**0.5 * (self.rew_achieve_ratio-1), 0.1)
 
                     prob = th.exp(log_prob)
 
@@ -263,7 +267,8 @@ class PPOTrainer(PPORollout):
                         adv_std=advantages.std(),
                         clip_fraction=clip_fraction,
                         approx_kl_div=approx_kl_div,
-                        RGE_para = self.policy.RGE_parameter,
+                        gage_topk = self.policy.gage_topk,
+                        goal_achieve = self.rew_achieve_ratio
                         prob_min = th.min(prob),
                         prob_max = th.max(prob),
                         prob_var = th.var(prob),

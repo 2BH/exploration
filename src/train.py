@@ -67,6 +67,9 @@ def train(config):
         rnd_use_policy_emb=config.rnd_use_policy_emb,
         dsc_obs_queue_len=config.dsc_obs_queue_len,
         log_dsc_verbose=config.log_dsc_verbose,
+        gage_topk_init=config.gage_topk_init,
+        gage_eta1=config.gage_eta1,
+        gage_eta2=config.gage_eta2,
     )
 
     model = PPOTrainer(
@@ -122,11 +125,15 @@ def train(config):
 
 
 @click.command()
+# GAGE params
+@click.option('--gage_topk_init', default=-1, type=int, help='Initial topk probabilities for actions smoothing.')
+@click.option('--gage_eta1', default=1/0.7, type=float, help='GAGE parameter for action smoothing.')
+@click.option('--gage_eta2', default=2.0, type=float, help='GAGE parameter for action smoothing.')
 # Training params
 @click.option('--run_id', default=0, type=int, help='Index (and seed) of the current run')
 @click.option('--group_name', type=str, help='Group name (wandb option), leave blank if not logging with wandb')
 @click.option('--log_dir', default='./logs', type=str, help='Directory for saving training logs')
-@click.option('--total_steps', default=int(1e7), type=int, help='Total number of frames to run for training')
+@click.option('--total_steps', default=int(1e8), type=int, help='Total number of frames to run for training')
 @click.option('--features_dim', default=64, type=int, help='Number of neurons of a learned embedding (PPO)')
 @click.option('--model_features_dim', default=128, type=int,
               help='Number of neurons of a learned embedding (dynamics model)')
@@ -225,7 +232,7 @@ def train(config):
 @click.option('--env_render', default=0, type=int, help='Whether to render games in human mode')
 @click.option('--use_status_predictor', default=0, type=int,
               help='Whether to train status predictors for analysis (MiniGrid only)')
-def main(
+def main( gage_topk_init, gage_eta1, gage_eta2,
     run_id, group_name, log_dir, total_steps, features_dim, model_features_dim, learning_rate, model_learning_rate,
     num_processes, batch_size, n_steps, env_source, game_name, project_name, map_size, can_see_walls, fully_obs,
     image_noise_scale, procgen_mode, procgen_num_threads, log_explored_states, fixed_seed, n_epochs, model_n_epochs,
