@@ -144,7 +144,7 @@ def train(config):
 @click.option('--n_steps', default=512, type=int, help='Number of steps to run for each process per update')
 # Env params
 @click.option('--env_source', default='ngc', type=str, help='minigrid or procgen')
-@click.option('--game_name', default="DoorKey-8x8", type=str, help='e.g. DoorKey-8x8, ninja, jumper, if env_source is NGC, no effect')
+@click.option('--game_name', default="DoorKey-8x8", type=str, help='e.g. DoorKey-8x8, ninja, jumper')
 @click.option('--project_name', required=False, type=str, help='Where to store training logs (wandb option)')
 @click.option('--map_size', default=5, type=int, help='Size of the minigrid room')
 @click.option('--can_see_walls', default=1, type=int, help='Whether walls are visible to the agent')

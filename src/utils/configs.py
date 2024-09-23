@@ -42,7 +42,12 @@ class TrainingConfig():
             env_name = f'MiniGrid-{game_name}'
             env_name += '-v0'
         elif self.env_source == EnvSrc.NGC:
-            env_name = 'MiniGrid-MultiRoom-N6-v0'
+            assert game_name in ["FourRooms-Lava",
+                                "MultiRoomLava-N4-S5",
+                                "MultiRoomLava-N6",
+                                "LockedRoomLava",
+                                ], f"{game_name} not in gage experiments."
+            env_name = f'MiniGrid-{game_name}-v0'
             # TODO: Currently other disturbance_type except append is not supported to be easily configured
             # self.wrapper_kwargs = {'disturbance_type': "append"}
 
