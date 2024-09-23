@@ -33,7 +33,7 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
             )
         self.share_action = share_action
         if share_action:
-            self.action_space = gym.spaces.Discrete(self.env.action_space.n + 5)
+            self.action_space = gym.spaces.Discrete(self.env.action_space.n + 3)
         else:
             raise NotImplementedError("Share action is not implemented yet")
             self.action_space = gym.spaces.MultiDiscrete(
@@ -128,6 +128,11 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
         noisy_img = self._parallel_env.get_frame(self._parallel_env.highlight, self._parallel_env.tile_size, self._parallel_env.agent_pov)
         if self.disturbance_type == "black":
             noisy_img = np.zeros_like(noisy_img) + 255
+        # Pad noisy_img to have the same width as actual_img
+        target_width = actual_img.shape[0]
+        noisy_img = np.pad(noisy_img,
+                           ((0,0), (target_width//2-noisy_img.shape[0]//2, target_width//2-noisy_img.shape[1]//2), (0,0)),
+                           mode="constant", constant_values=255)
         img = np.concatenate([actual_img, noisy_img], axis=0)
         if incl_pov:
             target_width = noisy_img.shape[1]
