@@ -9,6 +9,8 @@ from minigrid.wrappers import FullyObsWrapper, ImgObsWrapper, ReseedWrapper
 from src.env.ngc_wrapper import DiscreteParallelWorldWrapper
 from procgen import ProcgenEnv
 from stable_baselines3.common.callbacks import CallbackList
+from stable_baselines3.common.callbacks import CheckpointCallback
+
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.vec_env import VecMonitor, VecVideoRecorder
 from datetime import datetime
@@ -148,9 +150,23 @@ class TrainingConfig():
                 WandbCallback(
                     gradient_save_freq=50,
                     verbose=1,
-                )])
+                ),
+                CheckpointCallback(
+                    save_freq=self.save_freq,
+                    save_path=self.log_dir,
+                    name_prefix="rl_model",
+                    save_replay_buffer=True,
+                    save_vecnormalize=True,
+                    )])
         else:
-            callbacks = CallbackList([])
+            callbacks = CallbackList([
+                CheckpointCallback(
+                    save_freq=self.save_freq,
+                    save_path=self.log_dir,
+                    name_prefix="rl_model",
+                    save_replay_buffer=True,
+                    save_vecnormalize=True,
+                    )])
         return callbacks
 
     def get_optimizer(self):
@@ -241,8 +257,4 @@ class TrainingConfig():
             features_extractor_common_kwargs, \
             model_cnn_features_extractor_class, \
             model_features_extractor_common_kwargs
-
-
-
-
 

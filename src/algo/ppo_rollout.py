@@ -662,6 +662,8 @@ class PPORollout(BaseAlgorithm):
             # Transition
             new_obs, rewards, dones, infos = env.step(clipped_actions)
 
+
+
             if isinstance(new_obs, Dict):
                 new_obs = new_obs["rgb"]
             if self.env_render:
@@ -688,6 +690,10 @@ class PPORollout(BaseAlgorithm):
             self.num_timesteps += self.n_envs
             self._update_info_buffer(infos)
             n_steps += 1
+
+            callback.update_locals(locals())
+            if callback.on_step() is False:
+                return False
 
             # Add to PPO buffer
             if isinstance(self.action_space, gym.spaces.Discrete):
