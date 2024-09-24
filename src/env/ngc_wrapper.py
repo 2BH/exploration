@@ -129,10 +129,16 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
         if self.disturbance_type == "black":
             noisy_img = np.zeros_like(noisy_img) + 255
         # Pad noisy_img to have the same width as actual_img
-        target_width = actual_img.shape[0]
-        noisy_img = np.pad(noisy_img,
-                           ((0,0), (target_width//2-noisy_img.shape[0]//2, target_width//2-noisy_img.shape[1]//2), (0,0)),
-                           mode="constant", constant_values=255)
+        target_width = actual_img.shape[1]
+        if noisy_img.shape[1] <= target_width:
+            noisy_img = np.pad(noisy_img,
+                            ((0,0), (target_width//2-noisy_img.shape[1]//2, target_width//2-noisy_img.shape[1]//2), (0,0)),
+                            mode="constant", constant_values=255)
+        else:
+            # actual image is smaller than noisy image
+            actual_img = np.pad(actual_img,
+                            ((0,0), (noisy_img.shape[1]//2-actual_img.shape[1]//2, noisy_img.shape[1]//2-actual_img.shape[1]//2), (0,0)),
+                            mode="constant", constant_values=255)
         img = np.concatenate([actual_img, noisy_img], axis=0)
         if incl_pov:
             target_width = noisy_img.shape[1]
