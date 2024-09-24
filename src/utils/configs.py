@@ -44,7 +44,8 @@ class TrainingConfig():
             env_name = f'MiniGrid-{game_name}'
             env_name += '-v0'
         elif self.env_source == EnvSrc.NGC:
-            assert game_name in ["FourRooms-Lava",
+            assert game_name in ["DoorKeyLava-8x8",
+                                "FourRooms-Lava",
                                 "MultiRoomLava-N4-S5",
                                 "MultiRoomLava-N6",
                                 "LockedRoomLava",
