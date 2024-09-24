@@ -146,12 +146,12 @@ def test(config):
               help='Number of neurons of a learned embedding (dynamics model)')
 @click.option('--learning_rate', default=3e-4, type=float, help='Learning rate of PPO')
 @click.option('--model_learning_rate', default=3e-4, type=float, help='Learning rate of the dynamics model')
-@click.option('--num_processes', default=2, type=int, help='Number of env processes (workers)')
+@click.option('--num_processes', default=1, type=int, help='Number of env processes (workers)')
 @click.option('--batch_size', default=512, type=int, help='Batch size')
 @click.option('--n_steps', default=512, type=int, help='Number of steps to run for each process per update')
 # Env params
 @click.option('--env_source', default='ngc', type=str, help='minigrid or procgen')
-@click.option('--game_name', default="DoorKey-8x8", type=str, help='e.g. DoorKey-8x8, ninja, jumper')
+@click.option('--game_name', default="DoorKeyLava-8x8", type=str, help='e.g. DoorKey-8x8, ninja, jumper')
 @click.option('--project_name', required=False, type=str, help='Where to store training logs (wandb option)')
 @click.option('--map_size', default=5, type=int, help='Size of the minigrid room')
 @click.option('--can_see_walls', default=1, type=int, help='Whether walls are visible to the agent')
@@ -240,7 +240,7 @@ def test(config):
 @click.option('--use_status_predictor', default=0, type=int,
               help='Whether to train status predictors for analysis (MiniGrid only)')
 @click.option('--save_freq', default=50000, type=int, help='Frequency of saving models')
-@click.option('--model_path', default="/home/zhangb/ws/exploration/logs/MiniGrid-FourRooms-Lava-v0/2024-09-23_23-28-00/500/rl_model_800000_steps.zip", type=str, help='Path to the model to be loaded')
+@click.option('--model_path', default="/home/zhangb/ws/exploration/logs/MiniGrid-DoorKey-8x8-v0/2024-07-17_21-48-59/0/rl_model_9600000_steps.zip", type=str, help='Path to the model to be loaded')
 @click.option('--deterministic', default=True, type=bool, help='Whether to use deterministic actions')
 @click.option('--n_eval_episodes', default=5, type=int, help='Number of episodes to evaluate the model, currently not in use')
 

@@ -359,38 +359,39 @@ class PPOTrainer(PPORollout):
     def eval(self, model_path, log_dir=None, video_length=200, deterministic=True, render=False, record_video=True, n_eval_episodes=5):
         # load model
         self.set_parameters(model_path, device=self.device)
+        self.policy.eval()
         # evaluate model
         if record_video:
             env = VecVideoRecorder(self.env, video_folder=log_dir, record_video_trigger=lambda x: x == 0, video_length=video_length)
         def float_zeros(tensor_shape):
             return th.zeros(tensor_shape, device=self.device, dtype=th.float32)
         
-        # for i in range(n_eval_episodes):
-        obs = env.reset()
-        policy_mems = float_zeros([self.n_envs, self.policy.gru_layers, self.policy.dim_policy_features])
-        dones = [False for _ in range(env.num_envs)]
-        total_rewards = np.zeros(env.num_envs)
-        step = 0
+        for i in range(n_eval_episodes):
+            obs = env.reset()
+            policy_mems = float_zeros([self.n_envs, self.policy.gru_layers, self.policy.dim_policy_features])
+            dones = [False for _ in range(env.num_envs)]
+            total_rewards = np.zeros(env.num_envs)
+            step = 0
 
-        for i in range(video_length):
-            with th.no_grad():
-                # Convert to pytorch tensor or to TensorDict
-                obs_tensor = obs_as_tensor(obs, self.device)
-                actions, values, log_probs, policy_mems = \
-                    self.policy.forward(obs_tensor, policy_mems, deterministic=deterministic)
-                actions = actions.cpu().numpy()
+            while not all(dones):
+                with th.no_grad():
+                    # Convert to pytorch tensor or to TensorDict
+                    obs_tensor = obs_as_tensor(obs, self.device)
+                    actions, values, log_probs, policy_mems = \
+                        self.policy.forward(obs_tensor, policy_mems, deterministic=deterministic)
+                    actions = actions.cpu().numpy()
 
-            # Rescale and perform action
-            clipped_actions = actions
-            # Clip the actions to avoid out of bound error
-            if isinstance(self.action_space, gym.spaces.Box):
-                clipped_actions = np.clip(actions, self.action_space.low, self.action_space.high)
-                
-            new_obs, rewards, dones, infos = env.step(clipped_actions)
-            step += 1
-            if render:
-                env.render()
-            obs = new_obs
-            total_rewards += rewards
-            # print(f"Episode {i} - Total reward: {total_rewards}")
+                # Rescale and perform action
+                clipped_actions = actions
+                # Clip the actions to avoid out of bound error
+                if isinstance(self.action_space, gym.spaces.Box):
+                    clipped_actions = np.clip(actions, self.action_space.low, self.action_space.high)
+                    
+                new_obs, rewards, dones, infos = env.step(clipped_actions)
+                step += 1
+                if render:
+                    env.render()
+                obs = new_obs
+                total_rewards += rewards
+                print(f"Episode {i} - Total reward: {total_rewards}")
         env.close()

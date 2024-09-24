@@ -33,7 +33,7 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
             )
         self.share_action = share_action
         if share_action:
-            self.action_space = gym.spaces.Discrete(self.env.action_space.n + 3)
+            self.action_space = gym.spaces.Discrete(6 + 3)
         else:
             raise NotImplementedError("Share action is not implemented yet")
             self.action_space = gym.spaces.MultiDiscrete(
@@ -47,7 +47,7 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
         
     def step(self, action):
         if self.share_action:
-            if action < self.env.action_space.n:
+            if action < 6:
                 actual_obs, reward, terminated, truncated, info = self.env.step(action)
                 noisy_obs, _, _, _, _ = self._parallel_env.step(6)
             else:
@@ -55,7 +55,7 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
                 if self.disturbance_type == "black":
                     noisy_obs, _, _, _, _ = self._parallel_env.step(6)
                 else:
-                    noisy_obs, _, _, _, _ = self._parallel_env.step(action - self.env.action_space.n)
+                    noisy_obs, _, _, _, _ = self._parallel_env.step(action - 6)
         else:
             actual_obs, reward, terminated, truncated, info = self.env.step(action[0])
             noisy_obs, _, _, _, _ = self._parallel_env.step(action[1])
