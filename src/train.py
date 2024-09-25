@@ -127,7 +127,7 @@ def train(config):
 
 @click.command()
 # GAGE params
-@click.option('--gage_topk_init', default=-1, type=int, help='Initial topk probabilities for actions smoothing.')
+@click.option('--gage_topk_init', default=-1, type=float, help='Initial topk probabilities for actions smoothing.')
 @click.option('--gage_eta1', default=1/0.7, type=float, help='GAGE parameter for action smoothing.')
 @click.option('--gage_eta2', default=2.0, type=float, help='GAGE parameter for action smoothing.')
 @click.option('--optim_reward', default=0.8, type=float, help='Best episode reward depending on tasks.')
@@ -234,7 +234,7 @@ def train(config):
 @click.option('--env_render', default=0, type=int, help='Whether to render games in human mode')
 @click.option('--use_status_predictor', default=0, type=int,
               help='Whether to train status predictors for analysis (MiniGrid only)')
-@click.option('--save_freq', default=50000, type=int, help='Frequency of saving models')
+@click.option('--save_freq', default=30000, type=int, help='Frequency of saving models')
 
 def main( gage_topk_init, gage_eta1, gage_eta2, optim_reward,
     run_id, group_name, log_dir, total_steps, features_dim, model_features_dim, learning_rate, model_learning_rate,
