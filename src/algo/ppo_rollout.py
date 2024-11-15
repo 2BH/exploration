@@ -388,7 +388,7 @@ class PPORollout(BaseAlgorithm):
 
     def log_on_rollout_end(self, log_interval):
         # running average of reward achieve ratio
-        self.rew_achieve = 0.95*self.rew_achieve + 0.05*self.rollout_sum_rewards / (self.rollout_done_episodes + 1e-8)
+        self.rew_achieve = 0.95*self.rew_achieve + 0.05*max(0,self.rollout_sum_rewards) / (self.rollout_done_episodes + 1e-8)
 
         if log_interval is not None and self.iteration % log_interval == 0:
             log_data = {
