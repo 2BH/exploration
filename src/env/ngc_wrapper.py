@@ -47,6 +47,11 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
         
     def step(self, action):
         if self.share_action:
+            # if action < 4:
+            #     if action<3:
+            #         actual_obs, reward, terminated, truncated, info = self.env.step(action)
+            #     else:
+            #         actual_obs, reward, terminated, truncated, info = self.env.step(5)
             if action < 6:
                 actual_obs, reward, terminated, truncated, info = self.env.step(action)
                 noisy_obs, _, _, _, _ = self._parallel_env.step(6)
@@ -113,7 +118,8 @@ class DiscreteParallelWorldWrapper(gym.Wrapper):
         self.env.close()
         self._parallel_env.close()
     
-    def render(self, mode="human", incl_pov=True):
+    def render(self, mode="rgb_array", incl_pov=True):
+    # def render(self, mode="human", incl_pov=True):
         """
         Renders the current state of the environment.
 

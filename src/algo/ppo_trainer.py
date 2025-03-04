@@ -21,6 +21,7 @@ from stable_baselines3.common.utils import obs_as_tensor, safe_mean
 from torch.nn import functional as F
 
 from typing import Any, Dict, Optional, Type, Union
+import csv
 
 # ENTROPY_SCHEDULE = [2.59, 2.475, 2.315, 2.116, 1.881, 1.612, 1.306, 0.956, 0.547, 0.0]
 
@@ -363,6 +364,8 @@ class PPOTrainer(PPORollout):
         # evaluate model
         if record_video:
             env = VecVideoRecorder(self.env, video_folder=log_dir, record_video_trigger=lambda x: x == 0, video_length=video_length)
+        else:
+            env= self.env
         def float_zeros(tensor_shape):
             return th.zeros(tensor_shape, device=self.device, dtype=th.float32)
         
@@ -373,6 +376,9 @@ class PPOTrainer(PPORollout):
             total_rewards = np.zeros(env.num_envs)
             step = 0
 
+            # count actions for both tasks
+            num_a_main = 0
+            num_a_game = 0
             while not all(dones):
                 with th.no_grad():
                     # Convert to pytorch tensor or to TensorDict
@@ -380,6 +386,12 @@ class PPOTrainer(PPORollout):
                     actions, values, log_probs, policy_mems = \
                         self.policy.forward(obs_tensor, policy_mems, deterministic=deterministic)
                     actions = actions.cpu().numpy()
+
+                # count actions for both tasks
+                if self.action_space.n - actions.item() <=3:
+                    num_a_game += 1
+                else:
+                    num_a_main += 1
 
                 # Rescale and perform action
                 clipped_actions = actions
@@ -394,4 +406,9 @@ class PPOTrainer(PPORollout):
                 obs = new_obs
                 total_rewards += rewards
                 print(f"Episode {i} - Total reward: {total_rewards}")
+        
+            with open('./action_count.csv', 'a', newline='') as csvfile:
+                writer=csv.writer(csvfile)
+                writer.writerow([str(num_a_main), str(num_a_game)])
+                # fd.write(f"{num_a_main}, {num_a_game}")
         env.close()
