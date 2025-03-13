@@ -12,11 +12,14 @@ Video demos of DEIR: (1) [Introduction & MiniGrid demo](https://youtu.be/VDnkFuG
 # Usage
 ### Installation
 ```commandline
-conda create -n deir python=3.9
-conda activate deir 
-git clone https://github.com/swan-utokyo/deir.git
-cd deir
-python3 -m pip install -r requirements.txt
+conda create -n ngc python=3.10
+conda activate ngc
+cd exploration
+pip install -r requirements.txt
+
+cd ..
+pip install -e Minigrid-y
+pip install -e stable-baseline3-y
 ```
 
 ### Train DEIR on MiniGrid

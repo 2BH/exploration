@@ -60,11 +60,11 @@ class TrainingConfig():
     def init_logger(self):
         if self.group_name is not None:
             if self.gage_topk_init == -1:
-                algo_name = f"{self.int_rew_source}"
+                algo_name = f"{self.int_rew_source}_{self.ent_coef}"
             else:
                 algo_name = f"{self.int_rew_source}_{self.gage_topk_init:.1f}_{self.gage_eta1:.1f}_{self.gage_eta2:.1f}"
             self.wandb_run = wandb.init(
-                name=f'{socket.gethostname()}_{self.game_name}_{algo_name}_{self.run_id}',
+                name=f'{self.start_datetime}_{self.game_name}_{algo_name}_{self.run_id}', #_{socket.gethostname()}
                 entity='syan',  # your project name on wandb
                 project=self.project_name,
                 group=self.group_name,
