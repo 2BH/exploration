@@ -46,9 +46,13 @@ class TrainingConfig():
         elif self.env_source == EnvSrc.NGC:
             assert game_name in ["DoorKeyLava-8x8",
                                 "FourRooms-Lava",
+                                "MultiRoomLava-N3-S5",
                                 "MultiRoomLava-N4-S5",
+                                "MultiRoomLava-N5-S5",
                                 "MultiRoomLava-N6",
                                 "LockedRoomLava",
+                                "MultiRoom-N6",
+                                "DoorKeyLO-8x8"
                                 ], f"{game_name} not in gage experiments."
             env_name = f'MiniGrid-{game_name}-v0'
             # TODO: Currently other disturbance_type except append is not supported to be easily configured
@@ -58,11 +62,11 @@ class TrainingConfig():
         self.project_name = env_name if project_name is None else project_name
 
     def init_logger(self):
+        if self.gage_topk_init == -1:
+            algo_name = f"{self.int_rew_source}_{self.ent_coef}"
+        else:
+            algo_name = f"{self.int_rew_source}_{self.gage_topk_init:.1f}_{self.gage_eta1:.1f}_{self.gage_eta2:.1f}"
         if self.group_name is not None:
-            if self.gage_topk_init == -1:
-                algo_name = f"{self.int_rew_source}_{self.ent_coef}"
-            else:
-                algo_name = f"{self.int_rew_source}_{self.gage_topk_init:.1f}_{self.gage_eta1:.1f}_{self.gage_eta2:.1f}"
             self.wandb_run = wandb.init(
                 name=f'{self.start_datetime}_{self.game_name}_{algo_name}_{self.run_id}', #_{socket.gethostname()}
                 entity='syan',  # your project name on wandb
@@ -78,7 +82,7 @@ class TrainingConfig():
             self.use_wandb = False
             self.wandb_run = None
 
-        self.log_dir = os.path.join(self.log_dir, self.env_name, self.start_datetime, str(self.run_id))
+        self.log_dir = os.path.join(self.log_dir, self.env_name, self.start_datetime, algo_name, str(self.run_id))
         os.makedirs(self.log_dir, exist_ok=True)
         if self.write_local_logs:
             self.local_logger = LocalLogger(self.log_dir)
