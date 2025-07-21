@@ -278,7 +278,7 @@ class DiscriminatorModel(IntrinsicRewardBaseModel):
                 int_rews[env_id] += obs_dists.min().item()
 
         # no int reward at episode termination
-        int_rews = int_rews * (1-curr_dones.cpu().numpy())
+        # int_rews = int_rews * (1-curr_dones.cpu().numpy())
         return int_rews, model_mems
 
 

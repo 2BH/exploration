@@ -70,6 +70,7 @@ def train(config):
         gage_topk_init=config.gage_topk_init,
         gage_eta1=config.gage_eta1,
         gage_eta2=config.gage_eta2,
+        gage_tech=config.gage_tech,
     )
 
     model = PPOTrainer(
@@ -115,6 +116,7 @@ def train(config):
         log_explored_states=config.log_explored_states,
         verbose=0,
         optim_reward = config.optim_reward,
+        log_coef = config.log_coef,
     )
 
     if config.run_id == 0:
@@ -127,10 +129,13 @@ def train(config):
 
 @click.command()
 # GAGE params
+@click.option('--gage_tech', default='TOPK', type=str,
+              help='Source of gage techs: [NO|TOPK|TEM|LOGB]')
 @click.option('--gage_topk_init', default=-1, type=float, help='Initial topk probabilities for actions smoothing.')
 @click.option('--gage_eta1', default=1/0.7, type=float, help='GAGE parameter for action smoothing.')
 @click.option('--gage_eta2', default=2.0, type=float, help='GAGE parameter for action smoothing.')
 @click.option('--optim_reward', default=0.8, type=float, help='Best episode reward depending on tasks.')
+@click.option('--log_coef', default=0.1, type=float, help='Coefficient of actor logit loss')
 # Training params
 @click.option('--run_id', default=0, type=int, help='Index (and seed) of the current run')
 @click.option('--group_name', type=str, default=None, help='Group name (wandb option), leave blank if not logging with wandb')
@@ -236,7 +241,7 @@ def train(config):
               help='Whether to train status predictors for analysis (MiniGrid only)')
 @click.option('--save_freq', default=30000, type=int, help='Frequency of saving models')
 
-def main( gage_topk_init, gage_eta1, gage_eta2, optim_reward,
+def main( gage_tech, gage_topk_init, gage_eta1, gage_eta2, optim_reward, log_coef,
     run_id, group_name, log_dir, total_steps, features_dim, model_features_dim, learning_rate, model_learning_rate,
     num_processes, batch_size, n_steps, env_source, game_name, project_name, map_size, can_see_walls, fully_obs,
     image_noise_scale, procgen_mode, procgen_num_threads, log_explored_states, fixed_seed, n_epochs, model_n_epochs,

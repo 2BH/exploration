@@ -46,13 +46,11 @@ class TrainingConfig():
         elif self.env_source == EnvSrc.NGC:
             assert game_name in ["DoorKeyLava-8x8",
                                 "FourRooms-Lava",
-                                "MultiRoomLava-N3-S5",
                                 "MultiRoomLava-N4-S5",
-                                "MultiRoomLava-N5-S5",
                                 "MultiRoomLava-N6",
                                 "LockedRoomLava",
-                                "MultiRoom-N6",
                                 "DoorKeyLO-8x8"
+                                "MultiRoomLO-N4-S5"
                                 ], f"{game_name} not in gage experiments."
             env_name = f'MiniGrid-{game_name}-v0'
             # TODO: Currently other disturbance_type except append is not supported to be easily configured
@@ -62,10 +60,16 @@ class TrainingConfig():
         self.project_name = env_name if project_name is None else project_name
 
     def init_logger(self):
-        if self.gage_topk_init == -1:
-            algo_name = f"{self.int_rew_source}_{self.ent_coef}"
+        if self.gage_tech == "NO":
+            algo_name = f"{self.int_rew_source}_{self.ent_coef}_no-aliver"
+        elif self.gage_tech == "TOPK":
+            algo_name = f"{self.int_rew_source}_topk{self.gage_topk_init:.1f}-{self.gage_eta1:.1f}-{self.gage_eta2:.1f}_lc{self.log_coef}"
+        elif self.gage_tech == "TEM":
+            algo_name = f"{self.int_rew_source}_tem{self.gage_eta1:.1f}-{self.gage_eta2:.1f}_lc{self.log_coef}"
+        elif self.gage_tech == "LOGB":
+            algo_name = f"{self.int_rew_source}_logb{self.gage_eta1:.1f}-{self.gage_eta2:.1f}_lc{self.log_coef}"
         else:
-            algo_name = f"{self.int_rew_source}_{self.gage_topk_init:.1f}_{self.gage_eta1:.1f}_{self.gage_eta2:.1f}"
+            raise ValueError(f"gage_tech {self.gage_tech} not defined!")
         if self.group_name is not None:
             self.wandb_run = wandb.init(
                 name=f'{self.start_datetime}_{self.game_name}_{algo_name}_{self.run_id}', #_{socket.gethostname()}

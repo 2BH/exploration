@@ -5,7 +5,7 @@ import pdb
 import time
 
 # Initialize the environment (you can choose any environment from gym-minigrid)
-env = gym.make('MiniGrid-DoorKeyLO-8x8-v0')
+env = gym.make('MiniGrid-MultiRoomLO-N4-S5-v0', render_mode="human")
 
 # Reset the environment to start a new episode
 obs = env.reset()

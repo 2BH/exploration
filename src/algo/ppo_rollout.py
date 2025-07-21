@@ -388,7 +388,11 @@ class PPORollout(BaseAlgorithm):
 
     def log_on_rollout_end(self, log_interval):
         # running average of reward achieve ratio
-        self.rew_achieve = 0.95*self.rew_achieve + 0.05*max(0,self.rollout_sum_rewards) / (self.rollout_done_episodes + 1e-8)
+        true_rew_mean = safe_mean([ep_info["r_true"] for ep_info in self.ep_info_buffer])
+        if np.isnan(true_rew_mean):
+            pass
+        else:
+            self.policy.rew_achieve = 0.95*self.policy.rew_achieve + 0.05*true_rew_mean
 
         if log_interval is not None and self.iteration % log_interval == 0:
             log_data = {
@@ -415,6 +419,7 @@ class PPORollout(BaseAlgorithm):
                 log_data.update({
                     "rollout/ep_info_rew_mean": safe_mean([ep_info["r"] for ep_info in self.ep_info_buffer]),
                     "rollout/ep_info_len_mean": safe_mean([ep_info["l"] for ep_info in self.ep_info_buffer]),
+                    "rollout/ep_info_Trew_mean": safe_mean([ep_info["r_true"] for ep_info in self.ep_info_buffer]),
                 })
             else:
                 log_data.update({
@@ -751,7 +756,6 @@ class PPORollout(BaseAlgorithm):
         print('Collecting rollouts ...')
 
         # initial settings for reward guided exploitation
-        self.rew_achieve = 0
         self.ent_coef_init = self.ent_coef
         if isinstance(self.action_space, spaces.Discrete):
             self.entropy_max = -self.action_space.n * 1.0/self.action_space.n * np.log(1.0/self.action_space.n)

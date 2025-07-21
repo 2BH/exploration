@@ -76,6 +76,7 @@ class PPOTrainer(PPORollout):
         local_logger: Optional[LocalLogger] = None,
         use_wandb: bool = False,
         optim_reward: float = 1.0,
+        log_coef: float = 0.0,
     ):
         super(PPOTrainer, self).__init__(
             policy,
@@ -157,6 +158,7 @@ class PPOTrainer(PPORollout):
         self.ent_loss_avg = None
         self.ent_coef_init = ent_coef
         self.optim_reward = optim_reward
+        self.log_coef = log_coef
         if _init_setup_model:
             self._setup_model()
 
@@ -196,7 +198,7 @@ class PPOTrainer(PPORollout):
                     if self.use_sde:
                         self.policy.reset_noise(self.batch_size)
 
-                    values, log_prob, entropy, memories = \
+                    values, log_prob, entropy, memories, logits_origin = \
                         self.policy.evaluate_policy(
                             rollout_data.observations,
                             actions,
@@ -238,10 +240,21 @@ class PPOTrainer(PPORollout):
                     else:
                         entropy_loss = -th.mean(entropy)
 
+                    # logits loss favor small actor output
+                    if self.policy.gage_tech == "NO":
+                        logit_loss = 0
+                    elif self.policy.gage_tech == "TOPK":
+                        logit_loss = th.mean(th.maximum(th.abs(logits_origin)-3, 0)**2)
+                    elif self.policy.gage_tech in ["TEM", "LOGB"]:
+                        logit_loss = th.mean(logits_origin**2)
+                    else:
+                        raise ValueError(f"gage_tech {self.gage_tech} not defined!")
+
                     # Policy & Value Losses
                     loss = self.pg_coef * policy_loss + \
                            self.ent_coef * entropy_loss + \
-                           self.vf_coef * value_loss
+                           self.vf_coef * value_loss + \
+                           self.log_coef * logit_loss
 
                     # Update RGE_parameter (logits clip) according to rew_achieve_ratio
                     # self.policy.RGE_parameter = 4+ self.rew_achieve_ratio * 5
@@ -249,7 +262,7 @@ class PPOTrainer(PPORollout):
                     # self.policy.RGE_parameter = -0.1 * (self.rew_achieve_ratio/0.9-1.0)
                     # self.policy.RGE_parameter = 0.01 + (0.5-0.01)*self.rew_achieve_ratio/0.9
                     # self.policy.RGE_parameter = max(-7.01 * (self.rew_achieve_ratio/0.9 - 1), 1)
-                    self.policy.gage_topk = max(0, self.policy.gage_topk_init * (1 - self.rew_achieve/self.optim_reward)) + 1
+                    self.policy.gage_topk = max(0, self.policy.gage_topk_init * (1 - self.policy.rew_achieve/self.optim_reward)) + 1
                     # self.policy.RGE_parameter = max(-0.1**0.5 * (self.rew_achieve_ratio-1), 0.1)
 
                     prob = th.exp(log_prob)
@@ -270,15 +283,18 @@ class PPOTrainer(PPORollout):
                         policy_loss=policy_loss,
                         value_loss=value_loss,
                         entropy_loss=entropy_loss,
-                        adv=advantages.mean(),
-                        adv_std=advantages.std(),
-                        clip_fraction=clip_fraction,
-                        approx_kl_div=approx_kl_div,
+                        # adv=advantages.mean(),
+                        # adv_std=advantages.std(),
+                        # clip_fraction=clip_fraction,
+                        # approx_kl_div=approx_kl_div,
                         gage_topk = self.policy.gage_topk,
-                        goal_achieve = self.rew_achieve,
+                        goal_achieve = self.policy.rew_achieve,
                         prob_min = th.min(prob),
                         prob_max = th.max(prob),
                         prob_var = th.var(prob),
+                        logit_loss = logit_loss,
+                        logit_min = th.min(logits_origin),
+                        logit_max = th.max(logits_origin),
                     )
 
                     # Optimization step

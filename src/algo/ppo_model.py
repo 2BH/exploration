@@ -77,6 +77,7 @@ class PPOModel(ActorCriticCnnPolicy):
         gage_topk_init: float = 0,
         gage_eta1: float = 0,
         gage_eta2: float = 0,
+        gage_tech: str = '',
     ):
         self.run_id = run_id
         self.n_envs = n_envs
@@ -235,10 +236,12 @@ class PPOModel(ActorCriticCnnPolicy):
             )
         
         # RGE variable
+        self.gage_tech = gage_tech
         self.gage_topk_init = gage_topk_init #0.1**0.5
         self.gage_topk = gage_topk_init
         self.gage_eta1 = gage_eta1
         self.gage_eta2 = gage_eta2
+        self.rew_achieve = 0
 
     def _build_mlp_extractor(self) -> None:
         self.mlp_extractor = PolicyValueOutputHeads(
@@ -303,7 +306,7 @@ class PPOModel(ActorCriticCnnPolicy):
             -> Tuple[Tensor, Tensor, Tensor, Tensor]:
         latent_pi, latent_vf, latent_sde, memories = self._get_latent(obs, mem)
         values = self.value_net(latent_vf)
-        distribution = self._get_action_dist_from_latent(latent_pi)
+        distribution, _ = self._get_action_dist_from_latent(latent_pi)
         actions = distribution.get_actions(deterministic=deterministic)
         log_prob = distribution.log_prob(actions)
         return actions, values, log_prob, memories
@@ -311,7 +314,7 @@ class PPOModel(ActorCriticCnnPolicy):
     def evaluate_policy(self, obs: Tensor, act: Tensor, mem: Tensor) \
             -> Tuple[Tensor, Tensor, Tensor, Tensor]:
         latent_pi, latent_vf, latent_sde, memories = self._get_latent(obs, mem)
-        distribution = self._get_action_dist_from_latent(latent_pi)
+        distribution, logits_origin = self._get_action_dist_from_latent(latent_pi)
         log_prob = distribution.log_prob(act)
         values = self.value_net(latent_vf)
-        return values, log_prob, distribution.entropy(), memories
+        return values, log_prob, distribution.entropy(), memories, logits_origin
